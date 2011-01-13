@@ -1,4 +1,4 @@
-require 'spec_helper'
+require File.dirname(__FILE__) + '/../spec_helper'
 
 describe Creditcard do
   let(:valid_creditcard_attributes) { {:number => '4111111111111111', :verification_value => '123', :month => 12, :year => 2014} }
@@ -313,11 +313,17 @@ describe Creditcard do
     end
 
     context "#can_void?" do
-      PAYMENT_STATES.each do |state|
-        it "should be false if payment state is #{state}" do
+      (PAYMENT_STATES - [VOID]).each do |state|
+        it "should be true if payment state is #{state}" do
           payment.stub :state => state
-          creditcard.can_void?(payment).should be_false
+          payment.stub :void? => false
+          creditcard.can_void?(payment).should be_true
         end
+      end
+
+      it "should be valse if payment state is void" do
+        payment.stub :state => VOID
+        creditcard.can_void?(payment).should be_false
       end
     end
   end
@@ -334,19 +340,18 @@ describe Creditcard do
     end
 
     context "#can_void?" do
-      [PENDING, COMPLETED].each do |state|
+      (PAYMENT_STATES - [VOID]).each do |state|
         it "should be true if payment state is #{state}" do
           payment.stub :state => state
           creditcard.can_void?(payment).should be_true
         end
       end
 
-      (PAYMENT_STATES - [PENDING, COMPLETED]).each do |state|
-        it "should be false if payment state is #{state}" do
-          payment.stub :state => state
-          creditcard.can_void?(payment).should be_false
-        end
+      it "should be false if payment state is void" do
+        payment.stub :state => VOID
+        creditcard.can_void?(payment).should be_false
       end
+
     end
   end
 
