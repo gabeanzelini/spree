@@ -420,7 +420,7 @@ class Order < ActiveRecord::Base
   # applicable will be removed from the association and destroyed.
   def update_adjustments
     # separate into adjustments to keep and adjustements to toss
-    obsolete_adjustments = adjustments.select{|adjustment| !adjustment.applicable?}
+    obsolete_adjustments = adjustments.select{|adjustment| !adjustment.applicable? or adjustment.amount ==0}
     obsolete_adjustments.each(&:destroy)
     self.adjustments.reload.each(&:update!)
   end
