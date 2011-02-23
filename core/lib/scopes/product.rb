@@ -40,6 +40,22 @@ module Scopes::Product
     :descend_by_popularity,
   ]
 
+  ORDERING.each do |name|
+    next if %w(asecend_by_master_price descend_by_master_price).include?(name.to_s)
+    r = name.to_s.match(/(.*)_by_(.*)/)
+
+    order_text = "products.#{r[2]} "
+    order_text << ((r[1] == 'ascend') ?  "asc" : "desc")
+
+    Product.send(:scope, name.to_s, Product.send(:relation).order(order_text) )
+  end
+
+  ::Product.scope :ascend_by_master_price, lambda {
+    Product.joins(:variants_with_only_master).order('variants.price asc') }
+
+  ::Product.scope :descend_by_master_price, lambda {
+    Product.joins(:variants_with_only_master).order('variants.price desc') }
+
   ATTRIBUTE_HELPER_METHODS = {
     :with_ids => :product_picker_field
   }
@@ -47,6 +63,7 @@ module Scopes::Product
   # Ryan Bates - http://railscasts.com/episodes/112
   # general merging of conditions, names following the searchlogic pattern
   ::Product.scope :conditions, lambda { |*args| {:conditions => args}}
+
   # conditions_all is a more descriptively named enhancement of the above
   ::Product.scope :conditions_all, lambda { |*args| {:conditions => [args].flatten}}
 
@@ -58,20 +75,18 @@ module Scopes::Product
   }
 
 
-
-  #RAILS3 TODO - scopes are duplicated here and in model/product.rb - can we DRY it up?
-  # default product scope only lists available and non-deleted products
-  # ::Product.scope :not_deleted, lambda { where("products.deleted_at is null") }
-  # ::Product.scope :available,   lambda { |*args|
-  #    where("products.available_on <= ?", args.first || Time.zone.now)
-  # }
-  # ::Product.scope :active,      lambda { |*args|
-  #   Product.not_deleted.available(args.first).scope(:find)
-  # }
-
-  ::Product.scope :price_between, lambda {|low,high|
+  ::Product.scope :price_between, lambda { |low, high|
     { :joins => :master, :conditions => ["variants.price BETWEEN ? AND ?", low, high] }
   }
+
+  ::Product.scope :master_price_lte, lambda { |price|
+    { :joins => :master, :conditions => ["variants.price <= ?", price] }
+  }
+
+  ::Product.scope :master_price_gte, lambda { |price|
+    { :joins => :master, :conditions => ["variants.price >= ?", price] }
+  }
+
 
   # This scope selects products in taxon AND all its descendants
   # If you need products only within one taxon use
@@ -218,8 +233,10 @@ SQL
     }
   }
 
-  # Produce an array of keywords for use in scopes. Always return array with at least an empty string to avoid SQL errors
+  # Produce an array of keywords for use in scopes.
+  # Always return array with at least an empty string to avoid SQL errors
   def self.prepare_words(words)
+    return [''] if words.blank?
     a = words.split(/[,\s]/).map(&:strip)
     a.any? ? a : ['']
   end

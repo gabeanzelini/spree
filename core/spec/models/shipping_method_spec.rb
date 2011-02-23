@@ -1,10 +1,16 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe ShippingMethod do
+  context 'factory' do
+    let(:shipping_method){ Factory :shipping_method }
 
-  let(:order) { Order.new }
+    it "should set calculable correctly" do
+      shipping_method.calculator.calculable.should == shipping_method
+    end
+  end
 
-  it "should be available if the ship address falls within the method's zone"
-  #TODO - write some tests about availability - waiting to see if we like the older implementation before we bother with the tests
+  context 'validations' do
+    it { should have_valid_factory(:shipping_method) }
+  end
 
 end

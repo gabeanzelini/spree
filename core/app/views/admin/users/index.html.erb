@@ -1,7 +1,7 @@
 <div class='toolbar'>
   <ul class='actions'>
     <li>
-      <p><%= button_link_to t("new_user"), new_object_url, :icon => 'add' %></p>
+      <p><%= button_link_to t("new_user"), new_object_url, :icon => 'add', :id => 'admin_new_user_link' %></p>
     </li>
   </ul>
   <br class='clear' />
@@ -11,11 +11,11 @@
 <h1><%= t("listing_users") %></h1>
 
 
-<table class="index">
+<table class="index" id='listing_users'>
   <thead>
   <tr>
     <%= hook :admin_users_index_headers do %>
-      <th><%= order @search, :by => :email, :as => t("user") %></th>
+      <th><%= sort_link @search,:email,t("user"),{}, {:title => 'users_email_title'} %></th>
       <th>
         <%= hook :admin_users_index_header_actions %>
       </th>
@@ -27,11 +27,11 @@
       <tr id="<%= dom_id user %>">
         <%- locals = {:user => user} %>
         <%= hook :admin_users_index_rows, locals do %>
-          <td width="350px"><%=link_to user.email, object_url(user) %></td>
+          <td width="350px" class='user_email'><%=link_to user.email, object_url(user) %></td>
         <% end %>
         <td>
           <%= hook :admin_users_index_row_actions, locals do %>
-            <%= link_to_edit user %> &nbsp;
+            <%= link_to_edit user, :title => "admin_edit_#{dom_id(user)}" %> &nbsp;
             <%= link_to_delete user %>
           <% end %>
         </td>
@@ -46,7 +46,8 @@
 <% content_for :sidebar do %>
   <div class="box">
     <h3><%= t(:search) %></h3>
-    <%= form_for @search do |f| %>
+    <% @search = User.search %>
+    <%= form_for [:admin, @search] do |f| %>
       <%- locals = {:f => f} %>
       <%= hook :admin_users_index_search, locals do %>
         <p>

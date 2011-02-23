@@ -3,7 +3,7 @@
 <div class='toolbar'>
   <ul class='actions'>
     <li id="new_product_link">
-      <%= button_link_to t("new_product"), new_object_url, {:remote => true, :icon => 'add'} %>
+      <%= button_link_to t("new_product"), new_object_url, {:remote => true, :icon => 'add', :id => 'admin_new_product'} %>
     </li>
   </ul>
   <br class='clear' />
@@ -13,12 +13,12 @@
 
 <div id="new_product"></div>
 
-<table class="index">
+<table class="index" id='listing_products'>
   <tr>
     <%= hook :admin_products_index_headers do %>
       <th><%= t("sku") %></th>
-      <th><%= order @search, :by => :name, :as => t("name") %></th>
-      <th><%= order @search, :by => :master_price, :as => t("master_price") %></th>
+      <th><%= sort_link @search,:name, t("name"), {}, {:title => 'admin_products_listing_name_title'} %></th>
+      <th><%= sort_link @search,:master_price, t("master_price") %></th>
     <% end %>
     <th>
       <%= hook :admin_products_index_header_actions %>
@@ -34,7 +34,7 @@
     <% end %>
     <td class="actions">
       <%= hook :admin_products_index_row_actions, locals do %>
-        <%= link_to_edit product unless product.deleted?  %>
+        <%= link_to_edit product, :class => 'admin_edit_product' unless product.deleted?  %>
         &nbsp;
         <%= link_to_clone product %>
         &nbsp;
@@ -48,7 +48,7 @@
 
 <% content_for :sidebar do %>
 
-  <%= form_for @search do |f| %>
+  <%= form_for [:admin, @search] do |f| %>
     <div class="box">
       <h3><%= t(:search) %></h3>
 

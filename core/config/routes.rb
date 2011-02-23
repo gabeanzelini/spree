@@ -8,10 +8,6 @@ Rails.application.routes.draw do
 
   resources :tax_categories
 
-  resources :countries, :only => :index do
-    resources :states
-  end
-
   resources :states, :only => :index
 
   # non-restful checkout stuff
@@ -49,7 +45,7 @@ Rails.application.routes.draw do
   end
 
   #   # Search routes
-  match 's/:product_group_query' => 'products#index', :as => :simple_search
+  match 's/*product_group_query' => 'products#index', :as => :simple_search
   match '/pg/:product_group_name' => 'products#index', :as => :pg_search
   match '/t/*id/s/*product_group_query' => 'taxons#show', :as => :taxons_search
   match 't/*id/pg/:product_group_name' => 'taxons#show', :as => :taxons_pg_search
@@ -75,7 +71,11 @@ Rails.application.routes.draw do
     resources :configurations
     resources :products do
       resources :product_properties
-      resources :images
+      resources :images do
+        collection do
+          post :update_positions
+        end
+      end
       member do
         get :clone
       end

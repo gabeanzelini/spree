@@ -2,7 +2,7 @@ source 'http://rubygems.org'
 
 gem "spree", :path => File.dirname(__FILE__)
 
-# gem 'mysql'
+# gem 'mysql2'
 gem 'sqlite3-ruby'
 gem 'ruby-debug' if RUBY_VERSION.to_f < 1.9
 gem "rdoc",  "2.2"
@@ -10,9 +10,9 @@ gem "rdoc",  "2.2"
 gemspec
 
 group :test do
-  gem 'rspec-rails', '= 2.4.1'
+  gem 'rspec-rails', '= 2.5.0'
   gem 'factory_girl_rails'
-  gem 'fabrication'
+  gem 'factory_girl', '= 1.3.3'
   gem 'rcov'
   gem 'shoulda'
   if RUBY_VERSION < "1.9"
@@ -26,9 +26,9 @@ group :cucumber do
   gem 'cucumber-rails'
   gem 'database_cleaner', '~> 0.5.2'
   gem 'nokogiri'
-  gem 'capybara'
-  gem 'fabrication'
+  gem 'capybara', '= 0.4.1.2'
   gem 'factory_girl_rails'
+  gem 'factory_girl', '= 1.3.3'
 
   if RUBY_VERSION < "1.9"
     gem "ruby-debug"

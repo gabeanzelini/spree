@@ -29,6 +29,8 @@ Capybara.default_selector = :css
 require 'database_cleaner'
 require 'database_cleaner/cucumber'
 
+require "spree_core/testing_support/factories"
+
 # clean database before tests run
 DatabaseCleaner.strategy = :truncation
 DatabaseCleaner.clean
@@ -37,18 +39,36 @@ Capybara.save_and_open_page_path = File.join(Rails.root, "tmp")
 
 # load the rest of files for support and step definitions
 directories = [ File.join(FEATURES_PATH, '../../features/support'),
-               File.join(FEATURES_PATH, '../../features/step_definitions') ]
+                File.join(FEATURES_PATH, '../../features/step_definitions') ]
 
 files = directories.map do |dir|
-  Dir["#{dir}/**/*"]
+  Dir["#{dir}/**/*.rb"]
 end.flatten.uniq
 
 files.each do |path|
-  load(path) if path !~ /env.rb$/
+  if path !~ /env.rb$/
+    fp = File.expand_path(path)
+    #puts fp
+    load(fp)
+  end
 end
 
-# use the factory girl step definitions
-require 'factory_girl'
-require 'factory_girl/step_definitions'
-
 DatabaseCleaner.strategy = :transaction
+
+# call this method to see how factory_girl defines all the step definitions
+# it helps in debugging when factory_girl step definition does not work
+def factory_definitions_debugger
+  Factory.factories.values.each do |factory|
+    puts factory.human_name.pluralize
+    if factory.build_class.respond_to?(:columns)
+      factory.build_class.columns.each do |column|
+        human_column_name = column.name.downcase.gsub('_', ' ')
+        puts "an? #{factory.human_name} exists with an? #{human_column_name} of "
+      end
+    end
+  end
+end
+
+#factory_definitions_debugger
+
+require 'factory_girl/step_definitions'

@@ -1,5 +1,7 @@
 Spree::BaseController.class_eval do
 
+  before_filter :set_current_user
+
   # graceful error handling for cancan authorization exceptions
   rescue_from CanCan::AccessDenied do |exception|
     return unauthorized
@@ -17,6 +19,7 @@ Spree::BaseController.class_eval do
           flash.now[:error] = I18n.t(:authorization_failure)
           render 'shared/unauthorized', :layout => 'spree_application'
         else
+          flash[:error] = I18n.t(:authorization_failure)
           store_location
           redirect_to login_path and return
         end
@@ -37,6 +40,10 @@ Spree::BaseController.class_eval do
     unless disallowed_urls.include?(request.fullpath)
       session["user_return_to"] = request.fullpath
     end
+  end
+
+  def set_current_user
+    User.current = current_user
   end
 
 end

@@ -3,6 +3,10 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Variant do
   let(:variant) { Variant.new(:count_on_hand => 95) }
 
+  context "validations" do
+    it { should have_valid_factory(:variant) }
+  end
+
   context "on_hand=" do
     before { variant.stub(:inventory_units => mock('inventory-units')) }
 

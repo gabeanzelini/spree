@@ -2,10 +2,34 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe Order do
 
+  context 'validation' do
+    it { should have_valid_factory(:order) }
+  end
+
   let(:order) { Order.new }
   let(:gateway) { Gateway::Bogus.new(:name => "Credit Card", :active => true) }
 
-  before { Gateway.stub :current => gateway }
+  before do
+    Gateway.stub :current => gateway
+    User.stub(:current => mock_model(User, :id => 123))
+  end
+
+  context "factory" do
+    it "should change the Orders count by 1 after factory has been executed" do
+      lambda do
+        Factory(:order_with_totals)
+      end.should change(Order, :count).by(1)
+    end
+    context 'line_item' do
+      let(:order) { Factory(:order_with_totals) }
+      it "should have a line_item attached to it" do
+        order.line_items.size.should == 1
+      end
+      it "should be attached to last line_item created " do
+        order.line_items.first.id.should == LineItem.last.id
+      end
+    end
+  end
 
   context "#products" do
     it "should return ordered products" do
@@ -187,6 +211,11 @@ describe Order do
       adjustment = mock_model(Adjustment)
       order.stub_chain :adjustments, :optional => [adjustment]
       adjustment.should_receive(:update_attribute).with("locked", true)
+      order.finalize!
+    end
+
+    it "should log state event" do
+      order.state_events.should_receive(:create)
       order.finalize!
     end
   end
@@ -467,7 +496,7 @@ describe Order do
 
   context "#can_cancel?" do
 
-    [PENDING, BACKORDER, READY].each do |shipment_state|
+    %w(pending backorder ready).each do |shipment_state|
       it "should be true if shipment_state is #{shipment_state}" do
         order.stub :completed? => true
         order.shipment_state = shipment_state
@@ -475,7 +504,7 @@ describe Order do
       end
     end
 
-    (SHIPMENT_STATES - [PENDING, BACKORDER, READY]).each do |shipment_state|
+    (SHIPMENT_STATES - %w(pending backorder ready)).each do |shipment_state|
       it "should be false if shipment_state is #{shipment_state}" do
         order.stub :completed? => true
         order.shipment_state = shipment_state

@@ -24,10 +24,10 @@
 # without retriving all records.
 #
 # ProductGroup operates on named scopes defined for product in Scopes::Product,
-# or generated automatically by Searchlogic
+# or generated automatically by meta_search
 #
 class ProductGroup < ActiveRecord::Base
-  validates :name, :presence => true
+  validates :name, :presence => true # TODO ensure that this field is defined as not_null
   validates_associated :product_scopes
 
   before_save :set_permalink
@@ -102,15 +102,14 @@ class ProductGroup < ActiveRecord::Base
     # from first nested_scope so we have to apply ordering FIRST.
     # see #2253 on rails LH
     base_product_scope = scopish
-    if use_order && !self.order_scope.blank? && Product.condition?(self.order_scope)
+    if use_order && !self.order_scope.blank? && Product.respond_to?(self.order_scope.intern)
       base_product_scope = base_product_scope.send(self.order_scope)
     end
 
-    return self.product_scopes.reject {|s|
-             s.is_ordering?
-           }.inject(base_product_scope){|result, scope|
-             scope.apply_on(result)
-           }
+    return self.product_scopes.reject {|s| s.is_ordering? }.inject(base_product_scope) do |result, scope|
+      scope.apply_on(result)
+    end
+
   end
 
   # returns chain of named scopes generated from order scope and product scopes.
@@ -190,6 +189,7 @@ class ProductGroup < ActiveRecord::Base
       scope.name
     end
   end
+
   def order_scope=(scope_name)
     if scope = product_scopes.detect {|s| s.is_ordering?}
       scope.update_attribute(:name, scope_name)

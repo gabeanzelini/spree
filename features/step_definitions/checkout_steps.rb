@@ -3,13 +3,17 @@ When /^(?:|I )fill (billing|shipping) address with correct data$/ do |address_ty
   address = if @me
     @me.send(str_addr)
   else
-    Fabricate(:address)
+    state = State.first
+    Factory(:address, :state => state)
   end
+
   When %{I select "United States" from "Country" within "fieldset##{address_type}"}
+
   ['firstname', 'lastname', 'address1', 'city', 'zipcode', 'phone'].each do |field|
     When %{I fill in "order_#{str_addr}_attributes_#{field}" with "#{address.send(field)}"}
   end
-  When %{I select "#{address.state_name}" from "order_#{str_addr}_attributes_state_id"}
+
+  When %{I select "#{address.state.name}" from "order_#{str_addr}_attributes_state_id"}
 end
 
 When /^(?:|I )add a product with (.*?)? to cart$/ do |captured_fields|
@@ -18,10 +22,14 @@ When /^(?:|I )add a product with (.*?)? to cart$/ do |captured_fields|
     (name, value) = field.split(/:\s*/, 2)
     fields[name] = value.delete('"')
   end
+
   price = fields.delete('price')
-  if Product.master_price_equals(price).count(:conditions => fields) == 0
-    Fabricate(:product, fields.merge('price' => price))
+
+  if Product.search.master_price_equals(price).count(:conditions => fields) == 0
+    Factory(:product, fields.merge('price' => price,  :sku => 'ABC',
+                                                      :available_on => (Time.now - 100.days)))
   end
+
   When %{I go to the products page}
   Then %{I should see "#{fields['name']}" within "ul.product-listing"}
   When %{I follow "#{fields['name']}"}
@@ -30,24 +38,33 @@ When /^(?:|I )add a product with (.*?)? to cart$/ do |captured_fields|
   When %{I press "Add To Cart"}
 end
 
-When /^I choose "(.*?)" as shipping method and "(.*?)" as payment method(?: and set coupon code to "(.*?)")?$/ do |shipping_method, payment_method, coupon_code|
-  # TODO: remove next line after fixing capybara's find by label feature
+When /^I choose "(.*?)" as shipping method$/ do |shipping_method|
   shipping_method = "order_shipping_method_id_#{ShippingMethod.find_by_name(shipping_method).id}"
   When %{I choose "#{shipping_method}"}
   And %{press "Save and Continue"}
-  Then %{I should see "Payment Information" within "legend"}
+  Then %{I should see "Payment Information"}
+end
 
-  payment_method = "order_payments_attributes__payment_method_id_#{PaymentMethod.find_by_name(payment_method).id}"
+When /^I choose "(.*?)" as shipping method and "(.*?)" as payment method(?: and set coupon code to "(.*?)")?$/ do |shipping_method, payment_method, coupon_code|
+  When %{I choose "#{shipping_method}" as shipping method}
+
+  payment_method = "order_payments_attributes__payment_method_id_#{PaymentMethod.find(:last, :conditions => {:name => payment_method}).id}"
+
   When %{I choose "#{payment_method}"}
+
   if coupon_code
     When %{I fill in "Coupon code" with "#{coupon_code}"}
   end
-  And %{press "Save and Continue"}
-  Then %{I should see "Confirm" within "legend"}
 
-  When %{I press "Place Order"}
+  And %{press "Save and Continue"}
 end
 
 Then /^cart should be empty$/ do
   Then %{I should not see "Cart: ("}
+end
+
+When /^(?:|I )enter valid credit card details$/ do
+  And %{I fill in "card_number" with "4111111111111111"}
+  And %{I fill in "card_code" with "123"}
+  And %{press "Save and Continue"}
 end

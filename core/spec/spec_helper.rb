@@ -4,11 +4,11 @@ ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../test_app/config/environment", __FILE__)
 require 'rspec/rails'
 
-require 'factories'
-
 # Requires supporting files with custom matchers and macros, etc,
 # in ./support/ and its subdirectories.
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
+
+require 'spree_core/testing_support/factories'
 
 RSpec.configure do |config|
   # == Mock Framework
@@ -30,3 +30,18 @@ RSpec.configure do |config|
 end
 
 @configuration ||= AppConfiguration.find_or_create_by_name("Default configuration")
+
+PAYMENT_STATES = Payment.state_machine.states.keys unless defined? PAYMENT_STATES
+SHIPMENT_STATES = Shipment.state_machine.states.keys unless defined? SHIPMENT_STATES
+ORDER_STATES = Order.state_machine.states.keys unless defined? ORDER_STATES
+
+# Usage:
+#
+# context "factory" do
+#   it { should have_valid_factory(:address) }
+# end
+RSpec::Matchers.define :have_valid_factory do |factory_name|
+  match do |model|
+    Factory(factory_name).new_record?.should be_false
+  end
+end

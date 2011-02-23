@@ -7,11 +7,21 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 
-task :default => [ :spec ]
+task :default => [:spec, :cucumber ]
+
+desc "clean the whole repository by removing all the generated files"
+task :clean do
+  cmd = "rm -rf sandbox"; puts cmd; system cmd
+  %w(api auth core dash promo).each do |gem_name|
+    cmd = "rm #{gem_name}/Gemfile*"; puts cmd; system cmd
+    cmd = "cd #{gem_name}/spec &&  rm -rf test_app"; puts cmd; system cmd
+  end
+end
 
 desc "run spec test for all gems"
 task :spec do
   %w(api auth core dash promo).each do |gem_name|
+    puts "########################### #{gem_name} #########################"
     cmd = "rm #{gem_name}/Gemfile*"; puts cmd; system cmd
     cmd = "cd #{gem_name} && #{$0} test_app"; puts cmd; system cmd
     cmd = "cd #{gem_name} && #{$0} spec"; puts cmd; system cmd
@@ -20,10 +30,11 @@ end
 
 desc "run cucumber test for all gems"
 task :cucumber do
-  %w(api auth core dash promo).each do |gem_name|
+  %w(api auth core promo).each do |gem_name|
+    puts "########################### #{gem_name} #########################"
     cmd = "rm #{gem_name}/Gemfile*"; puts cmd; system cmd
     cmd = "cd #{gem_name} && rake test_app"; puts cmd; system cmd
-    cmd = "cd #{gem_name} && bundle exec cucumber"; puts cmd; system cmd
+    cmd = "cd #{gem_name} && bundle exec cucumber -p ci"; puts cmd; system cmd
   end
 end
 
@@ -50,6 +61,12 @@ task :sandbox do
         append_file "Gemfile" do
 <<-gems
           gem 'spree', :path => '../' \n
+          if RUBY_VERSION < "1.9"
+            gem "ruby-debug"
+          else
+            gem "ruby-debug19"
+          end
+
 gems
         end
       end

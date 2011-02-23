@@ -1,22 +1,22 @@
 <div class='toolbar order-links'>
-  <%= button_link_to t("new_order"), new_admin_order_url, :icon => 'add' %>
+  <%= button_link_to t("new_order"), new_admin_order_url, :icon => 'add', :id => 'admin_new_order' %>
 </div>
 
 <%= render :partial => 'admin/shared/order_sub_menu' %>
 
 <h1><%= t("listing_orders") %></h1>
 
-<table class="index">
+<table class="index" id='listing_orders'>
   <thead>
     <tr>
       <%= hook :admin_orders_index_headers do %>
-        <th><%= order @search, :by => :completed_at,     :as => t("order_date") %></th>
-        <th><%= order @search, :by => :number,           :as => t("order_number") %></th>
-        <th><%= order @search, :by => :state,            :as => t("status") %></th>
-        <th><%= order @search, :by => :payment_state,    :as => t("payment_state") %></th>
-        <th><%= order @search, :by => :shipment_state,   :as => t("shipment_state") %></th>
-        <th><%= order @search, :by => :email,            :as => t("customer") %></th>
-        <th><%= order @search, :by => :total,            :as => t("total") %></th>
+        <th><%= sort_link @search, :completed_at,   t("order_date") %></th>
+        <th><%= sort_link @search, :number,         t("order_number") %></th>
+        <th><%= sort_link @search, :state,          t("status") %></th>
+        <th><%= sort_link @search, :payment_state,  t("payment_state") %></th>
+        <th><%= sort_link @search, :shipment_state, t("shipment_state") %></th>
+        <th><%= sort_link @search, :email,          t("customer") %></th>
+        <th><%= sort_link @search, :total,          t("total") %></th>
       <% end %>
       <th>
         <%= hook :admin_orders_index_header_actions %>
@@ -38,7 +38,7 @@
       <% end %>
       <td>
         <%= hook :admin_orders_index_row_actions, locals do %>
-          <%= link_to_edit order %>
+          <%= link_to_edit order, :title => "admin_edit_#{dom_id(order)}" %>
         <% end %>
       </td>
     </tr>
@@ -52,7 +52,8 @@
 <div class="box">
   <h3><%= t(:search) %></h3>
 
-  <%= form_for @search do |f| %>
+  <% @order = Order.metasearch %>
+  <%= form_for [:admin,@order] do |f| %>
     <%- locals = {:f => f} %>
     <%= hook :admin_orders_index_search, locals do %>
       <label><%= t("date_range") %></label><br />
@@ -79,14 +80,14 @@
       </p>
       <p>
       <label><%= t 'first_name_begins_with' %></label><br />
-          <%= f.text_field :bill_address_firstname_begins_with, :size=>25 %>
+          <%= f.text_field :bill_address_firstname_starts_with, :size=>25 %>
       </p>
       <p>
         <label><%= t 'last_name_begins_with' %></label><br />
-        <%= f.text_field :bill_address_lastname_begins_with, :size=>25 %>
+        <%= f.text_field :bill_address_lastname_starts_with, :size=>25 %>
       </p>
       <p>
-        <%= f.check_box :completed_at_not_null, {:style => "vertical-align:middle;"} %>
+        <%= f.check_box :completed_at_is_not_null, {:style => "vertical-align:middle;"} %>
         <label>
           <%= t("show_only_complete_orders") %>
         </label>

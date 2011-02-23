@@ -3,7 +3,7 @@
 <div class='toolbar'>
   <ul class='actions'>
     <li id="new_property_link">
-      <%= button_link_to t("new_property"), new_admin_property_url, {:remote => true, :icon => 'add', 'data-update' => 'new_property'} %>
+      <%= button_link_to t("new_property"), new_admin_property_url, {:remote => true, :icon => 'add', 'data-update' => 'new_property', :id => 'new_property_link'} %>
     </li>
   </ul>
   <br class='clear' />
@@ -15,7 +15,7 @@
 
 <%= image_tag "spinner.gif", :plugin=>"spree", :style => "display:none", :id => 'busy_indicator' %>
 
-<table class="index">
+<table class="index" id='listing_properties'>
   <thead>
     <tr>
       <th><%= t("name") %></th>
@@ -29,10 +29,10 @@
         <td><%= property.name %></td>
         <td><%= property.presentation %></td>
         <td class="actions">
-          <%= link_to_edit(property) %>
+          <%= link_to_edit(property, :class => 'admin_edit_property') %>
           &nbsp;
           <%= link_to_delete(property) %>
-        </td>        
+        </td>
       </tr>
     <% end %>
   </tbody>

@@ -73,7 +73,7 @@ The source code is essentially a collection of gems.  Spree is meant to be run w
 
 1. Clone the git repo
 
-        git clone git://github.com/railsdog/spree.git spree
+        git clone git://github.com/spree/spree.git spree
         cd spree
 
 2. Install the gem dependencies
@@ -92,29 +92,39 @@ The source code is essentially a collection of gems.  Spree is meant to be run w
 Running Tests
 -------------
 
+If you want to run all the tests across all the gems then
+
+    $ cd spree
+    $ rake spec     #=> 'this will run spec tests for all the gems'
+    $ rake cucumber #=> 'this will run cucumber tests for all the gems'
+    $ rake          #=> 'this will run both spec and cucumber tests for all the gems'
+
 Each gem contains its own series of tests, and for each directory, you need to do a quick one-time
 creation of a test application and then you can use it to run the tests.  For example, to run the
 tests for the core project.
 
-    rails new testapp -m spec/test_template.rb -T -J
-    cd testapp
-    rails g spree_core:install
-    rake db:migrate db:seed db:test:prepare
+    $ cd core
+    $ rake test_app
+    $ rake spec
+    $ rake cucumber
+    $ rake          #=> 'this will run both spec and cucumber tests for the gem'
 
-Then run the tests
+    # If you want to run specs for only a single spec file
+    $ bundle exec rspec spec/models/state_spec.rb
 
-    rspec spec
+    # If you want to run a particular line of spec
+    $ bundle exec rspec spec/models/state_spec.rb:7
 
-Note that each project has its own generator for "installing."  This basically sets up the test
-app with what it needs to run (primarily migrations.)  So for the spree_auth gem, for example,
-you would use the following
+    # If you want to run a single cucumber feature
+    # bundle exec cucumber features/admin/orders.feature --require features
 
-    rails g spree_auth:install
+    # If you want to run a particular scenario then include the line number
+    # bundle exec cucumber features/admin/orders.feature:3 --require features
 
 
 Contributing
 ------------
 
-Spree is an open source project.  We encourage contributions.  Please see the [contributors guidelines](http://spreecommerce.com/documentation/contributing_to_spree.html) before contributing. 
+Spree is an open source project.  We encourage contributions.  Please see the [contributors guidelines](http://spreecommerce.com/documentation/contributing_to_spree.html) before contributing.
 
 The Github team has also been kind enough to write up some great [documentation](http://help.github.com/pull-requests/) on working with pull requests. Contributions should be performed on [topic branches](http://progit.org/book/ch3-4.html) in your personal forks - just issue your pull requests from there. We're also asking that you continue to log important issues for non-trivial patches in our [lighthouse repository](http://railsdog.lighthouseapp.com/projects/31096-spree). You can just link the pull request in the ticket (and link the ticket in the pull request.)

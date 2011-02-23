@@ -2,7 +2,7 @@
 <div class='toolbar'>
   <ul class='actions'>
     <li>
-      <%= button_link_to t("new_product_group"), new_object_url, :icon => 'add'  %>
+      <%= button_link_to t("new_product_group"), new_object_url, :icon => 'add', :id => 'new_product_group_link' %>
     </li>
   </ul>
   <br class='clear' />
@@ -10,7 +10,7 @@
 
 <h1><%= t("listing_product_groups") %></h1>
 
-<table class="index">
+<table class="index" id='listing_product_groups'>
   <thead>
     <tr>
       <th><%= ProductGroup.human_attribute_name("name") %></th>
@@ -27,7 +27,9 @@
         <td><%= link_to pg_search_path(:product_group_name => pg.permalink), pg_search_path(:product_group_name => pg.permalink) %></td>
         <td><%== pg.product_scopes.map(&:to_sentence).join("<br />") %></td>
         <td><%= pg.products.count %></td>
-        <td><%= link_to_edit pg %> &nbsp; <%= link_to_delete pg %></td>
+        <td>
+          <%= link_to_edit pg, :class => 'admin_edit_product_group' %> &nbsp; <%= link_to_delete pg %>
+        </td>
       </tr>
     <% end %>
   </tbody>

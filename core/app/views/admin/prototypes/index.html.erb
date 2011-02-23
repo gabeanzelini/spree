@@ -3,7 +3,7 @@
 <div class='toolbar'>
   <ul class='actions'>
     <li id="new_prototype_link">
-      <%= button_link_to t("new_prototype"), new_admin_prototype_url, {:remote => true, :icon => 'add', 'data-update' => 'new_prototype'} %>
+      <%= button_link_to t("new_prototype"), new_admin_prototype_url, {:remote => true, :icon => 'add', 'data-update' => 'new_prototype', :id => 'new_prototype_link'} %>
     </li>
   </ul>
   <br class='clear' />
@@ -15,7 +15,7 @@
 <%= image_tag "spinner.gif", :plugin=>"spree", :style => "display:none", :id => 'busy_indicator' %>
 <div id="new_prototype"></div>
 
-<table class="index">
+<table class="index" id='listing_prototypes'>
   <thead>
     <tr>
       <th><%= t("name") %></th>
@@ -27,10 +27,10 @@
       <tr id="<%= dom_id prototype %>">
         <td><%= prototype.name %></td>
         <td class="actions">
-          <%= link_to_edit(prototype) %>
+          <%= link_to_edit(prototype, :class => 'admin_edit_prototype') %>
           &nbsp;
           <%= link_to_delete(prototype) %>
-        </td>        
+        </td>
       </tr>
     <% end %>
   </tbody>

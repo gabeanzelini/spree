@@ -1,6 +1,11 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe Creditcard do
+
+  context 'validation' do
+    it { should have_valid_factory(:creditcard) }
+  end
+
   let(:valid_creditcard_attributes) { {:number => '4111111111111111', :verification_value => '123', :month => 12, :year => 2014} }
   let(:order) { mock_model(Order, :update! => nil, :payments => []) }
 
@@ -164,7 +169,7 @@ describe Creditcard do
       @payment.state = 'pending'
     end
     it "should call payment_gateway.void with the payment's response_code" do
-      @creditcard.payment_gateway.should_receive(:void).with('123', @creditcard, {})
+      @creditcard.payment_gateway.should_receive(:void).with('123', {})
       @creditcard.void(@payment)
     end
     it "should log the response" do
@@ -276,7 +281,7 @@ describe Creditcard do
       creditcard.can_capture?(payment).should be_true
     end
 
-    (PAYMENT_STATES - [PENDING]).each do |state|
+    (PAYMENT_STATES - ['pending']).each do |state|
       it "should be false if payment state is #{state}" do
         payment = mock_model(Payment, :state => state, :created_at => Time.now)
         creditcard.can_capture?(payment).should be_false
@@ -303,7 +308,7 @@ describe Creditcard do
         creditcard.can_credit?(payment).should be_false
       end
 
-      (PAYMENT_STATES - [COMPLETED]).each do |state|
+      (PAYMENT_STATES - ['completed']).each do |state|
         it "should be false if payment state is #{state}" do
           payment.stub :state => state
           creditcard.can_credit?(payment).should be_false
@@ -313,7 +318,7 @@ describe Creditcard do
     end
 
     context "#can_void?" do
-      (PAYMENT_STATES - [VOID]).each do |state|
+      (PAYMENT_STATES - ['void']).each do |state|
         it "should be true if payment state is #{state}" do
           payment.stub :state => state
           payment.stub :void? => false
@@ -322,25 +327,17 @@ describe Creditcard do
       end
 
       it "should be valse if payment state is void" do
-        payment.stub :state => VOID
+        payment.stub :state => 'void'
         creditcard.can_void?(payment).should be_false
       end
     end
   end
 
   context "when transaction is less than 12 hours old" do
-    let(:payment) { mock_model(Payment, :state => 'completed', :created_at => Time.now - 1.hour) }
-
-    context "#can_credit?" do
-      PAYMENT_STATES.each do |state|
-        it "should be false if payment state is #{state}" do
-          creditcard.can_credit?(payment).should be_false
-        end
-      end
-    end
+    let(:payment) { mock_model(Payment, :state => 'completed') }
 
     context "#can_void?" do
-      (PAYMENT_STATES - [VOID]).each do |state|
+      (PAYMENT_STATES - ['void']).each do |state|
         it "should be true if payment state is #{state}" do
           payment.stub :state => state
           creditcard.can_void?(payment).should be_true
@@ -348,7 +345,7 @@ describe Creditcard do
       end
 
       it "should be false if payment state is void" do
-        payment.stub :state => VOID
+        payment.stub :state => 'void'
         creditcard.can_void?(payment).should be_false
       end
 

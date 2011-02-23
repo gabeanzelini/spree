@@ -3,7 +3,7 @@
 <div class='toolbar'>
   <ul class='actions'>
     <li id="new_ot_link">
-      <%= button_link_to t("new_option_type"), new_admin_option_type_url, {:remote => true, :icon => 'add'} %>
+      <%= button_link_to t("new_option_type"), new_admin_option_type_url, {:remote => true, :icon => 'add', :id => 'new_option_type_link'} %>
     </li>
   </ul>
   <br class='clear' />
@@ -13,7 +13,7 @@
 
 <div id="new_option_type"></div>
 
-<table class="index sortable">
+<table class="index sortable" id='listing_option_types'>
   <tr>
     <th><%= t("name") %></th>
     <th><%= t("presentation") %></th>
@@ -24,7 +24,7 @@
       <td><span class="handle"></span> <%= option_type.name %></td>
       <td><%= option_type.presentation %></td>
       <td class="actions">
-        <%= link_to_edit(option_type) %>
+        <%= link_to_edit(option_type, :class => 'admin_edit_option_type') %>
         &nbsp;
         <%= link_to_delete(option_type) %>
       </td>

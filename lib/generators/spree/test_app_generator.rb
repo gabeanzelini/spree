@@ -4,6 +4,10 @@ module Spree
   module Generators
     class TestAppGenerator < Rails::Generators::Base
 
+      class << self
+        attr_accessor :verbose
+      end
+
       class_option :app_name, :type => :string,
                               :desc => "The name of the test rails app to generate. Defaults to test_app.",
                               :default => "test_app"
@@ -13,10 +17,12 @@ module Spree
       end
 
       def generate_app
-        remove_directory_if_exists("spec/#{test_app}")
-        inside "spec" do
-          run "rails new #{test_app} -GJTq --skip-gemfile"
-        end
+        silence_stream(STDOUT) {
+          remove_directory_if_exists("spec/#{test_app}")
+          inside "spec" do
+            run "rails new #{test_app} -GJTq --skip-gemfile"
+          end
+        }
       end
 
       def create_rspec_gemfile
@@ -50,38 +56,7 @@ module Spree
 
       def setup_environments
         silence_stream(STDOUT) {
-        template "config/environments/cucumber.rb"
-        append_file "config/environments/test.rb" do
-<<-constantz
-CART = "cart"
-ADDRESS = "address"
-DELIVERY = "delivery"
-PAYMENT = "payment"
-CONFIRM = "confirm"
-COMPLETE = "complete"
-CANCELED = "canceled"
-RETURNED = "returned"
-RETURN_AUTHORIZED = "awaiting_return"
-
-ORDER_STATES = [CART, ADDRESS, DELIVERY, PAYMENT, CONFIRM, COMPLETE, CANCELED, RETURNED, RETURN_AUTHORIZED]
-
-READY = "ready"
-SHIPPED = "shipped"
-PARTIAL = "partial"
-PENDING = "pending"
-BACKORDER = "backorder"
-
-SHIPMENT_STATES = [READY, SHIPPED, PARTIAL, PENDING, BACKORDER]
-
-PROCESSING = 'processing'
-FAILED = 'failed'
-COMPLETED = 'completed'
-VOID = 'void'
-CHECKOUT = 'checkout'
-
-PAYMENT_STATES = [CHECKOUT, PROCESSING, FAILED, COMPLETED, VOID, PENDING]
-constantz
-        end
+          template "config/environments/cucumber.rb"
         }
       end
 
@@ -114,7 +89,6 @@ constantz
 
       def run_migrations
         inside "" do
-          puts "running migrations db:seed for test and cucumber environment. might take a while ..."
           silence_stream(STDOUT) {
             run "rake db:migrate db:seed RAILS_ENV=test"
             run "rake db:migrate db:seed RAILS_ENV=cucumber"
@@ -127,18 +101,25 @@ constantz
       end
 
       def remove_directory_if_exists(path)
-        run "rm -r #{path}" if File.directory?(path)
+        silence_stream(STDOUT) {
+          run "rm -r #{path}" if File.directory?(path)
+        }
       end
 
       def silence_stream(stream)
-        old_stream = stream.dup
-        stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
-        stream.sync = true
-        yield
-      ensure
-        stream.reopen(old_stream)
+        if self.class.verbose
+          yield
+        else
+          begin
+            old_stream = stream.dup
+            stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+            stream.sync = true
+            yield
+          ensure
+            stream.reopen(old_stream)
+          end
+        end
       end
-
     end
   end
 end

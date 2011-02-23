@@ -52,6 +52,12 @@ class Product < ActiveRecord::Base
     :conditions => ["variants.deleted_at IS NULL"],
     :dependent => :destroy
 
+  has_many :variants_with_only_master,
+    :class_name => 'Variant',
+    :conditions => ["variants.deleted_at IS NULL AND variants.is_master = ?", true],
+    :dependent => :destroy
+
+
   validates :name, :price, :permalink, :presence => true
 
   accepts_nested_attributes_for :product_properties, :allow_destroy => true, :reject_if => lambda { |pp| pp[:property_name].blank? }
@@ -65,18 +71,26 @@ class Product < ActiveRecord::Base
   #RAILS3 TODO -  scopes are duplicated here and in scopres/product.rb - can we DRY it up?
   # default product scope only lists available and non-deleted products
   scope :not_deleted,     where("products.deleted_at is NULL")
+
   scope :available,       lambda { |*on| where("products.available_on <= ?", on.first || Time.zone.now ) }
-  scope :active,          not_deleted.available #RAILS 3 TODO - this scope doesn't match the original 2.3.x version, needs attention (but it works)
+
+  #RAILS 3 TODO - this scope doesn't match the original 2.3.x version, needs attention (but it works)
+  scope :active,          not_deleted.available
+
   scope :on_hand,         where("products.count_on_hand > 0")
 
-
-
   if (ActiveRecord::Base.connection.adapter_name == 'PostgreSQL')
-    scope :group_by_products_id, { :group => "products." + Product.column_names.join(", products.") } if ActiveRecord::Base.connection.tables.include?("products")
+    if ActiveRecord::Base.connection.tables.include?("products")
+      scope :group_by_products_id, { :group => "products." + Product.column_names.join(", products.") }
+    end
   else
     scope :group_by_products_id, { :group => "products.id" }
   end
+  search_methods :group_by_products_id
 
+  scope :id_equals, lambda { |input_id| where("products.id = ?", input_id) }
+
+  scope :taxons_name_eq, lambda { |name| joins(:taxons).where("taxons.name = ?", name) }
 
   # ----------------------------------------------------------------------------------------------------------
   #
@@ -109,7 +123,7 @@ class Product < ActiveRecord::Base
   # ----------------------------------------------------------------------------------------------------------
 
   def to_param
-    return permalink unless permalink.blank?
+    return permalink if permalink.present?
     name.to_url
   end
 
@@ -149,7 +163,7 @@ class Product < ActiveRecord::Base
   end
 
   def add_properties_and_option_types_from_prototype
-    if prototype_id and prototype = Prototype.find_by_id(prototype_id)
+    if prototype_id && prototype = Prototype.find_by_id(prototype_id)
       prototype.properties.each do |property|
         product_properties.create(:property => property)
       end

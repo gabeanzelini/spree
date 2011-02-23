@@ -10,15 +10,13 @@ module Spree::Search
     def retrieve_products
       base_scope = get_base_scope
       @products_scope = @product_group.apply_on(base_scope)
-
       curr_page = manage_pagination && keywords ? 1 : page
-      @products = @products_scope.all.paginate({
+
+      @products = @products_scope.paginate({
           :include  => [:images, :master],
           :per_page => per_page,
           :page     => curr_page
         })
-
-      return @products
     end
 
     def method_missing(name)
@@ -54,7 +52,7 @@ module Spree::Search
         @cached_product_group = ProductGroup.find_by_permalink(params[:product_group_name])
         @product_group = ProductGroup.new
       elsif params[:product_group_query]
-        @product_group = ProductGroup.new.from_route([params[:product_group_query]].flatten)
+        @product_group = ProductGroup.new.from_route(params[:product_group_query].split("/"))
       else
         @product_group = ProductGroup.new
       end
