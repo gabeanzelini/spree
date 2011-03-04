@@ -54,20 +54,6 @@ Feature: Admin visiting products
     Then I should see "Name can't be blank"
     Then I should see "Price can't be blank"
 
-  Scenario: admin editing a product
-    Given the following products exist:
-      | name                 | sku  | available_on        |
-      | apache baseball cap  | A100 | 2011-01-01 01:01:01 |
-      | apache baseball cap2 | B100 | 2011-01-01 01:01:01 |
-      | zomg shirt           | Z100 | 2011-01-01 01:01:01 |
-    Given count_on_hand is 10 for all products
-    When I go to the admin home page
-    When I follow "Products"
-    When I click first link from selector "table#listing_products a.edit"
-    When I fill in "product_name" with "apache baseball cap 99"
-    When I press "Update"
-    Then I should see "Successfully updated!"
-
   Scenario: admin cloning a product
     Given the following products exist:
       | name                 | sku  | available_on        |
@@ -98,11 +84,25 @@ Feature: Admin visiting products
     When I click first link from selector "table.index a.edit"
     When I fill in "image_alt" with "ruby on rails t-shirt"
     When I press "Update"
-    Then show me the page
     Then I should see "Successfully updated!"
     Then I should see "ruby on rails t-shirt"
 
-
-
-
-
+    @javascript
+  Scenario: admin managing taxons
+    Given custom taxons exist
+    Given the following products exist:
+      | name                 | sku  | available_on        |
+      | apache baseball cap  | A100 | 2011-01-01 01:01:01 |
+      | apache baseball cap2 | B100 | 2011-01-01 01:01:01 |
+      | zomg shirt           | Z100 | 2011-01-01 01:01:01 |
+    Given count_on_hand is 10 for all products
+    When I go to the admin home page
+    When I follow "Products"
+    When I click first link from selector "table#listing_products a.edit"
+    When I follow "Taxons"
+    When I fill in "searchtext" with "a"
+    Then async
+    Then I wait for 2 seconds
+    Then verify admin taxons listing
+    When I click first link from selector "#search_hits a"
+    Then async
