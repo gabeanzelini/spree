@@ -9,13 +9,13 @@ class TaxonsController < Spree::BaseController
   private
   def load_data
     @taxon ||= object
-    params[:taxon] = @taxon ? @taxon.id : 'none'
+    params[:taxon] = @taxon
     @searcher = Spree::Config.searcher_class.new(params)
     @products = @searcher.retrieve_products
   end
 
   def object
-    @object ||= end_of_association_chain.find_by_permalink(params[:id])
+    @object ||= end_of_association_chain.find_by_permalink(params[:id][-1] == "/" ? params[:id] : "#{params[:id]}/")
   end
 
   def accurate_title
