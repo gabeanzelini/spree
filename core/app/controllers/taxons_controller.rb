@@ -9,7 +9,7 @@ class TaxonsController < Spree::BaseController
   private
   def load_data
     @taxon ||= object
-    params[:taxon] = @taxon.id
+    params[:taxon] = @taxon ? @taxon.id : 'none'
     @searcher = Spree::Config.searcher_class.new(params)
     @products = @searcher.retrieve_products
   end
