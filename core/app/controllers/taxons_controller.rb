@@ -15,7 +15,7 @@ class TaxonsController < Spree::BaseController
   end
 
   def object
-    @object ||= end_of_association_chain.find_by_permalink(get_permalink_from_id)
+    @object ||= end_of_association_chain.where('(permalink = ? or permalink = ?)', params[:id], get_permalink_from_id).first
   end
   
   def get_permalink_from_id
